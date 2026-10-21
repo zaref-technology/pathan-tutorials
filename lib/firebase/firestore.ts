@@ -376,3 +376,8 @@ export async function updateEnquiry(id: string, data: Partial<Enquiry>) {
   const ref = doc(db, COLLECTIONS.ENQUIRIES, id);
   await updateDoc(ref, withTimestamp(data));
 }
+
+export async function deleteEnquiry(id: string) {
+  const ref = doc(db, COLLECTIONS.ENQUIRIES, id);
+  await deleteDoc(ref);
+}

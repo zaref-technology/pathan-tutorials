@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import AdminShell from "@/components/admin/AdminShell";
-import { getEnquiries, updateEnquiry } from "@/lib/firebase/firestore";
+import { getEnquiries, updateEnquiry, deleteEnquiry } from "@/lib/firebase/firestore";
 import { Enquiry, EnquiryStatus } from "@/lib/types";
-import { Phone, Mail, Search, X, ChevronRight, User } from "lucide-react";
+import { Phone, Mail, Search, X, ChevronRight, User, Trash2, Loader2 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa6";
 import toast from "react-hot-toast";
 
@@ -27,6 +27,7 @@ export default function EnquiriesPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<EnquiryStatus | "All">("All");
   const [selected, setSelected] = useState<Enquiry | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => { if (!loading && !user) router.push("/admin"); }, [user, loading, router]);
 
@@ -46,6 +47,18 @@ export default function EnquiriesPage() {
       if (selected?.id === id) setSelected((s) => s ? { ...s, status } : null);
       toast.success("Status updated");
     } catch { toast.error("Update failed"); }
+  };
+
+  const handleDelete = async (enq: Enquiry) => {
+    if (deletingId) return;
+    if (!confirm(`Delete enquiry from ${enq.studentName}? This cannot be undone.`)) return;
+    setDeletingId(enq.id);
+    try {
+      await deleteEnquiry(enq.id);
+      setEnquiries((prev) => prev.filter((e) => e.id !== enq.id));
+      setSelected((s) => (s?.id === enq.id ? null : s));
+      toast.success("Enquiry deleted");
+    } catch { toast.error("Delete failed"); } finally { setDeletingId(null); }
   };
 
   const filtered = enquiries.filter((e) => {
@@ -115,7 +128,21 @@ export default function EnquiriesPage() {
                           </select>
                         </td>
                         <td className="text-[var(--text-muted)] text-xs">{new Date(enq.createdAt).toLocaleDateString("en-IN")}</td>
-                        <td><ChevronRight size={14} className="text-[var(--text-muted)]" /></td>
+                        <td>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleDelete(enq); }}
+                              disabled={deletingId === enq.id}
+                              aria-label={`Delete enquiry from ${enq.studentName}`}
+                              title="Delete"
+                              className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {deletingId === enq.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                            </button>
+                            <ChevronRight size={14} className="text-[var(--text-muted)]" />
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -159,6 +186,8 @@ export default function EnquiriesPage() {
               statuses={STATUSES}
               statusColors={STATUS_COLORS}
               onStatusChange={handleStatusChange}
+              onDelete={handleDelete}
+              deleting={deletingId === selected.id}
             />
           ) : (
             <div className="text-center text-[var(--text-muted)] py-10">
@@ -185,6 +214,8 @@ export default function EnquiriesPage() {
                 statuses={STATUSES}
                 statusColors={STATUS_COLORS}
                 onStatusChange={handleStatusChange}
+                onDelete={handleDelete}
+                deleting={deletingId === selected.id}
               />
             </div>
           </div>
@@ -195,12 +226,14 @@ export default function EnquiriesPage() {
 }
 
 function EnquiryDetail({
-  enq, statuses, statusColors, onStatusChange,
+  enq, statuses, statusColors, onStatusChange, onDelete, deleting,
 }: {
   enq: Enquiry;
   statuses: EnquiryStatus[];
   statusColors: Record<EnquiryStatus, string>;
   onStatusChange: (id: string, s: EnquiryStatus) => void;
+  onDelete: (enq: Enquiry) => void;
+  deleting: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -236,6 +269,15 @@ function EnquiryDetail({
           {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
+      <button
+        type="button"
+        onClick={() => onDelete(enq)}
+        disabled={deleting}
+        className="btn-sm w-full flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+        {deleting ? "Deleting..." : "Delete Enquiry"}
+      </button>
     </div>
   );
 }
