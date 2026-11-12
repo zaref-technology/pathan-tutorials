@@ -2,30 +2,38 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import { Trophy, User, Star, FileImage, X, ZoomIn, Filter } from "lucide-react";
-import { StudentResult } from "@/lib/types";
+import { RESULT_CATEGORIES, StudentResult } from "@/lib/types";
+
+// Older records have no category, so their exam name is used instead.
+const categoryOf = (r: StudentResult) => r.category || r.exam;
 
 interface ResultsGridProps {
   results: StudentResult[];
 }
 
 export default function ResultsGrid({ results }: ResultsGridProps) {
-  const [examFilter, setExamFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
   const [yearFilter, setYearFilter] = useState("All");
   const [lightbox, setLightbox] = useState<string | null>(null);
 
   // Build dynamic filter lists from actual data
-  const exams = useMemo(() => ["All", ...Array.from(new Set(results.map((r) => r.exam).filter(Boolean))).sort()], [results]);
+  const exams = useMemo(() => {
+    const present = new Set(results.map(categoryOf).filter(Boolean));
+    const known = RESULT_CATEGORIES.filter((c) => present.has(c));
+    const others = Array.from(present).filter((c) => !(RESULT_CATEGORIES as readonly string[]).includes(c)).sort();
+    return ["All", ...known, ...others];
+  }, [results]);
   const years = useMemo(() => ["All", ...Array.from(new Set(results.map((r) => r.year).filter(Boolean))).sort((a, b) => Number(b) - Number(a))], [results]);
 
   const filtered = useMemo(() => {
     return results.filter((r) => {
-      const matchExam = examFilter === "All" || r.exam === examFilter;
+      const matchExam = categoryFilter === "All" || categoryOf(r) === categoryFilter;
       const matchYear = yearFilter === "All" || r.year === yearFilter;
       return matchExam && matchYear;
     });
-  }, [results, examFilter, yearFilter]);
+  }, [results, categoryFilter, yearFilter]);
 
-  const hasFilters = examFilter !== "All" || yearFilter !== "All";
+  const hasFilters = categoryFilter !== "All" || yearFilter !== "All";
 
   return (
     <>
@@ -34,8 +42,8 @@ export default function ResultsGrid({ results }: ResultsGridProps) {
         <div className="bg-[var(--bg-surface)] border-b border-[var(--border)] py-5">
           <div className="container-custom grid grid-cols-3 divide-x divide-[var(--border)] text-center">
             <div className="px-4">
-              <p className="text-2xl font-display font-extrabold text-primary">{results.length}+</p>
-              <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mt-0.5">Students</p>
+              <p className="text-2xl font-display font-extrabold text-primary">{results.length}</p>
+              <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mt-0.5">Results Published</p>
             </div>
             <div className="px-4">
               <p className="text-2xl font-display font-extrabold text-primary">
@@ -65,9 +73,9 @@ export default function ResultsGrid({ results }: ResultsGridProps) {
             {exams.map((exam) => (
               <button
                 key={exam}
-                onClick={() => setExamFilter(exam)}
+                onClick={() => setCategoryFilter(exam)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                  examFilter === exam
+                  categoryFilter === exam
                     ? "bg-primary text-black border-primary"
                     : "bg-transparent text-[var(--text-secondary)] border-[var(--border)] hover:border-primary/40 hover:text-white"
                 }`}
@@ -101,7 +109,7 @@ export default function ResultsGrid({ results }: ResultsGridProps) {
 
           {hasFilters && (
             <button
-              onClick={() => { setExamFilter("All"); setYearFilter("All"); }}
+              onClick={() => { setCategoryFilter("All"); setYearFilter("All"); }}
               className="ml-auto text-xs text-[var(--text-muted)] hover:text-white transition-colors underline underline-offset-2"
             >
               Clear
@@ -128,7 +136,7 @@ export default function ResultsGrid({ results }: ResultsGridProps) {
               </p>
               {hasFilters && (
                 <button
-                  onClick={() => { setExamFilter("All"); setYearFilter("All"); }}
+                  onClick={() => { setCategoryFilter("All"); setYearFilter("All"); }}
                   className="btn-outline btn-sm"
                 >
                   Show All Results
@@ -181,11 +189,12 @@ export default function ResultsGrid({ results }: ResultsGridProps) {
                         <p className="font-display font-bold text-white text-xs leading-tight drop-shadow">
                           {result.studentName}
                         </p>
-                        {(result.class || result.exam) && (
+                        {(result.class || categoryOf(result)) && (
                           <p className="text-[9px] text-white/60 mt-0.5">
-                            {[result.class, result.exam, result.year].filter(Boolean).join(" · ")}
+                            {[result.class, categoryOf(result), result.year].filter(Boolean).join(" · ")}
                           </p>
                         )}
+                        {result.school && <p className="text-[9px] text-white/60">{result.school}</p>}
                       </div>
                     )}
                   </div>
@@ -194,11 +203,12 @@ export default function ResultsGrid({ results }: ResultsGridProps) {
                   {!result.studentPhoto && (
                     <div className="px-3 pt-3 pb-1">
                       <p className="font-display font-bold text-white text-xs leading-snug">{result.studentName}</p>
-                      {(result.class || result.exam) && (
+                      {(result.class || categoryOf(result)) && (
                         <p className="text-[9px] text-[var(--text-muted)] mt-0.5">
-                          {[result.class, result.exam, result.year].filter(Boolean).join(" · ")}
+                          {[result.class, categoryOf(result), result.year].filter(Boolean).join(" · ")}
                         </p>
                       )}
+                      {result.school && <p className="text-[9px] text-[var(--text-muted)]">{result.school}</p>}
                       {result.percentage && (
                         <p className="text-lg font-extrabold font-display text-primary mt-1">{result.percentage}</p>
                       )}

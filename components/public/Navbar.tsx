@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Menu, X, Phone,
   Home, Info, BookOpen, Award, Users, Image as ImageIcon,
-  Megaphone, Mail,
+  Megaphone, Mail, Lightbulb,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa6";
 import { NavigationSettings, SiteSettings } from "@/lib/types";
@@ -20,6 +20,7 @@ const DEFAULT_MENU = [
   { id: "home", label: "Home", href: "/", icon: Home },
   { id: "about", label: "About", href: "/about", icon: Info },
   { id: "courses", label: "Courses", href: "/courses", icon: BookOpen },
+  { id: "methodology", label: "Methodology", href: "/methodology", icon: Lightbulb },
   { id: "results", label: "Results", href: "/results", icon: Award },
   { id: "faculty", label: "Faculty", href: "/faculty", icon: Users },
   { id: "gallery", label: "Gallery", href: "/gallery", icon: ImageIcon },
@@ -29,7 +30,7 @@ const DEFAULT_MENU = [
 
 const ICON_MAP: Record<string, React.ElementType> = {
   home: Home, about: Info, courses: BookOpen, results: Award,
-  faculty: Users, gallery: ImageIcon, announcements: Megaphone, contact: Mail,
+  faculty: Users, gallery: ImageIcon, announcements: Megaphone, contact: Mail, methodology: Lightbulb,
 };
 
 export default function Navbar({ nav, settings }: NavbarProps) {

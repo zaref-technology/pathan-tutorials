@@ -1,11 +1,12 @@
-import { getCachedAchievements } from "@/lib/bff/cache";
+import { getAchievements } from "@/lib/firebase/firestore";
 import Image from "next/image";
 import Link from "next/link";
 import { Trophy, Calendar, ArrowRight, ExternalLink } from "lucide-react";
 
 export const metadata = {
-  title: "Achievements — Pathan Tutorials",
-  description: "Celebrate the milestones and outstanding accomplishments of Pathan Tutorials students.",
+  title: "Achievements",
+  description: "Milestones and accomplishments of Pathan Tutorials students.",
+  alternates: { canonical: "/achievements" },
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -18,7 +19,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default async function AchievementsPage() {
-  const achievements = await getCachedAchievements().catch(() => []);
+  const achievements = await getAchievements().catch(() => []);
 
   return (
     <div className="pt-20 lg:pt-24">
@@ -52,7 +53,7 @@ export default async function AchievementsPage() {
               </div>
               <h2 className="font-display font-bold text-xl text-white">No Achievements Yet</h2>
               <p className="text-[var(--text-secondary)] text-sm max-w-sm">
-                Check back soon — we're always celebrating new milestones!
+                Check back soon — we&apos;re always celebrating new milestones!
               </p>
               <Link href="/" className="btn-outline btn-sm mt-2">Back to Home</Link>
             </div>

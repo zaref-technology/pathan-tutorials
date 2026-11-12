@@ -1,13 +1,28 @@
-import { getCachedSiteSettings } from "@/lib/bff/cache";
+import { getFaculty } from "@/lib/firebase/firestore";
+import { getContentPageOrDefault, getPublicSiteSettings } from "@/lib/content";
+import { DOC_IDS } from "@/lib/types";
+import ContentCards from "@/components/public/ContentCards";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail, Clock, ArrowRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa6";
 
-export const metadata = { title: "About Us — Pathan Tutorials" };
+export const metadata = {
+  title: "About Us: Our Journey",
+  description:
+    "The journey, vision, mission and teaching philosophy of Pathan Tutorials of Mathematics, Hinganghat.",
+  alternates: { canonical: "/about" },
+};
 
 export default async function AboutPage() {
-  const settings = await getCachedSiteSettings().catch(() => null);
+  const [settings, about, faculty] = await Promise.all([
+    getPublicSiteSettings(),
+    getContentPageOrDefault(DOC_IDS.ABOUT_PAGE),
+    getFaculty().catch(() => []),
+  ]);
+  const director = faculty.find((f) => f.isDirector) ?? null;
+  // Sections stay hidden until the admin has written something for them.
+  const aboutItems = about.items.filter((it) => it.description.trim());
 
   return (
     <div className="pt-20 lg:pt-24">
@@ -24,6 +39,40 @@ export default async function AboutPage() {
           <div className="gold-divider mx-auto mt-6" />
         </div>
       </section>
+
+      {/* ── Journey, vision, mission ──────────────────────────── */}
+      {aboutItems.length > 0 && (
+        <section className="section-padding bg-[var(--bg-dark)] border-b border-[var(--border)]">
+          <div className="container-custom">
+            <div className="text-center max-w-3xl mx-auto mb-10">
+              <h2 className="section-title">{about.heading}</h2>
+              {about.subheading && <p className="section-subtitle mt-3">{about.subheading}</p>}
+            </div>
+            <ContentCards items={aboutItems} columns="two" />
+          </div>
+        </section>
+      )}
+
+      {/* ── Director message ──────────────────────────────────── */}
+      {director && (director.message || director.bio) && (
+        <section className="section-padding bg-[var(--bg-card)] border-b border-[var(--border)]">
+          <div className="container-custom max-w-4xl">
+            <div className="grid md:grid-cols-[14rem_1fr] gap-8 items-center">
+              <div className="relative aspect-square w-48 md:w-full mx-auto rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)]">
+                {director.profileImage && (
+                  <Image src={director.profileImage} alt={director.name} fill sizes="224px" className="object-cover" />
+                )}
+              </div>
+              <div className="flex flex-col gap-3 text-center md:text-left">
+                <h2 className="font-display font-extrabold text-xl sm:text-2xl text-white">A message from {director.name}</h2>
+                {director.designation && <p className="text-primary font-semibold text-sm">{director.designation}</p>}
+                <p className="text-[var(--text-secondary)] leading-relaxed whitespace-pre-line">{director.message || director.bio}</p>
+                <Link href="/faculty" className="btn-outline w-fit mx-auto md:mx-0">Full Profile <ArrowRight size={16} /></Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── About Content ─────────────────────────────────────── */}
       <section className="section-padding bg-[var(--bg-card)]">

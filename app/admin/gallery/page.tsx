@@ -1,21 +1,20 @@
 "use client";
-import { revalidateCache } from "@/lib/bff/revalidate";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import AdminShell from "@/components/admin/AdminShell";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { getAllGallery, addGalleryImage, updateGalleryImage, deleteGalleryImage } from "@/lib/firebase/firestore";
-import { GalleryImage, GalleryCategory, GalleryMediaType } from "@/lib/types";
+import { GALLERY_CATEGORIES, GalleryImage, GalleryCategory, GalleryMediaType, LEGACY_GALLERY_CATEGORIES } from "@/lib/types";
 import { Plus, Trash2, X, Save, Loader2, ToggleLeft, ToggleRight, Image as ImageIcon, Pencil } from "lucide-react";
 import { FaInstagram, FaYoutube } from "react-icons/fa";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
-const CATEGORIES: GalleryCategory[] = ["Classes", "Events", "Results", "Achievements", "Activities"];
+const CATEGORIES: GalleryCategory[] = [...GALLERY_CATEGORIES];
 
 const EMPTY: Omit<GalleryImage, "id"> = {
-  url: "", title: "", category: "Classes", description: "", order: 0,
+  url: "", title: "", category: "Classroom Moments", description: "", order: 0,
   isActive: true, storagePath: "", mediaType: "image", embedUrl: "", thumbnailUrl: "",
 };
 
@@ -136,11 +135,10 @@ export default function GalleryAdminPage() {
     try {
       if (modal.mode === "add") {
         await addGalleryImage(modal.data as Omit<GalleryImage, "id">);
-        toast.success("Added!"); revalidateCache("gallery");
+        toast.success("Added!");
       } else {
         const { id, ...rest } = modal.data as GalleryImage;
         await updateGalleryImage(id, rest);
-        revalidateCache("gallery");
         toast.success("Updated!");
       }
       setModal(null);
@@ -158,7 +156,6 @@ export default function GalleryAdminPage() {
     if (!confirm("Delete this item?")) return;
     try {
       await deleteGalleryImage(id);
-      revalidateCache("gallery");
       toast.success("Deleted");
 
       const data = await getAllGallery();
@@ -169,7 +166,6 @@ export default function GalleryAdminPage() {
   const handleToggle = async (img: GalleryImage) => {
     try {
       await updateGalleryImage(img.id, { isActive: !img.isActive });
-      revalidateCache("gallery");
 
       const data = await getAllGallery();
       setImages(data);
@@ -200,7 +196,7 @@ export default function GalleryAdminPage() {
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <div className="flex gap-2 flex-wrap">
-          {(["All", ...CATEGORIES] as (GalleryCategory | "All")[]).map((cat) => (
+          {(["All", ...CATEGORIES, ...LEGACY_GALLERY_CATEGORIES.filter((c) => images.some((i) => i.category === c))] as (GalleryCategory | "All")[]).map((cat) => (
             <button key={cat} onClick={() => setFilterCat(cat)}
               className={`px-3 py-1.5 rounded-full text-xs font-600 border transition-all ${filterCat === cat ? "bg-primary text-black border-primary" : "border-[var(--border)] text-[var(--text-secondary)] hover:border-primary/30"}`}>
               {cat}
@@ -375,8 +371,8 @@ export default function GalleryAdminPage() {
                 </div>
                 <div>
                   <label className="form-label">Category</label>
-                  <select className="form-select" value={d?.category ?? "Classes"} onChange={(e) => set("category", e.target.value as GalleryCategory)}>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  <select className="form-select" value={d?.category ?? "Classroom Moments"} onChange={(e) => set("category", e.target.value as GalleryCategory)}>
+                    {(CATEGORIES.includes(d.category) ? CATEGORIES : [...CATEGORIES, d.category]).map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>

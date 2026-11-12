@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BookOpen, ArrowRight, ChevronRight } from "lucide-react";
 import { Course } from "@/lib/types";
+import CoursePrice from "@/components/public/CoursePrice";
 
 // ── Image card shown when showOnHome=true ─────────────────────────────────────
 function HomeCourseCard({ course }: { course: Course }) {
@@ -38,10 +39,8 @@ function HomeCourseCard({ course }: { course: Course }) {
         )}
 
         {/* Fees on image (bottom-left) */}
-        {course.fees && course.image && (
-          <span className="absolute bottom-3 left-3 text-sm font-bold text-white drop-shadow">
-            {course.fees}
-          </span>
+        {(course.fees || course.offerPrice) && course.image && (
+          <CoursePrice fees={course.fees} offerPrice={course.offerPrice} className="absolute bottom-3 left-3 text-sm font-bold text-white drop-shadow" />
         )}
       </div>
 
@@ -59,8 +58,8 @@ function HomeCourseCard({ course }: { course: Course }) {
           </p>
         )}
         <div className="flex items-center justify-between mt-auto pt-2 border-t border-[var(--border)]">
-          {!course.image && course.fees ? (
-            <span className="text-xs font-bold text-primary">{course.fees}</span>
+          {!course.image && (course.fees || course.offerPrice) ? (
+            <CoursePrice fees={course.fees} offerPrice={course.offerPrice} className="text-xs font-bold text-primary" />
           ) : (
             <span />
           )}

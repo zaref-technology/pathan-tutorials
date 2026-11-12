@@ -104,6 +104,16 @@ export default function TestimonialsAdminPage() {
                 </div>
                 <div><label className="form-label">Year</label><input className="form-input" value={(modal.data as Testimonial).date || ""} onChange={(e) => set("date", e.target.value)} /></div>
               </div>
+              <div>
+                <label className="form-label">Feedback from</label>
+                <select className="form-select" value={(modal.data as Testimonial).role || ""} onChange={(e) => set("role", e.target.value)}>
+                  <option value="">Not specified</option>
+                  <option value="Student">Student</option>
+                  <option value="Parent">Parent</option>
+                </select>
+              </div>
+              <div><label className="form-label">Video link (optional, YouTube)</label><input className="form-input" type="url" value={(modal.data as Testimonial).videoUrl || ""} onChange={(e) => set("videoUrl", e.target.value)} placeholder="https://www.youtube.com/watch?v=..." /></div>
+              <p className="text-xs text-[var(--text-muted)]">Only publish feedback you have permission to share.</p>
               <div><label className="form-label">Testimonial</label><textarea className="form-textarea" rows={4} value={(modal.data as Testimonial).testimonial || ""} onChange={(e) => set("testimonial", e.target.value)} /></div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" checked={(modal.data as Testimonial).isActive} onChange={(e) => set("isActive", e.target.checked)} className="w-4 h-4 accent-primary" />

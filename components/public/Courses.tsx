@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ArrowRight, Clock, IndianRupee, GraduationCap, BookOpen, CheckCircle2 } from "lucide-react";
 import { Course } from "@/lib/types";
+import CoursePrice from "@/components/public/CoursePrice";
 
 const DEFAULT_COURSES: Course[] = [
   {
@@ -81,7 +82,7 @@ function CourseCard({ course }: { course: Course }) {
           </div>
           <div className="flex items-center gap-1 text-sm font-600 text-primary">
             <IndianRupee size={14} />
-            <span>{course.fees}</span>
+            <CoursePrice fees={course.fees} offerPrice={course.offerPrice} />
           </div>
         </div>
 

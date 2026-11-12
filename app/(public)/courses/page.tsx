@@ -1,12 +1,18 @@
-import { getCachedCourses } from "@/lib/bff/cache";
+import { getCourses } from "@/lib/firebase/firestore";
 import Link from "next/link";
+import CoursePrice from "@/components/public/CoursePrice";
 import Image from "next/image";
 import { BookOpen, Clock, CheckCircle2, ArrowRight } from "lucide-react";
 
-export const metadata = { title: "Courses — Pathan Tutorials" };
+export const metadata = {
+  title: "Maths Courses for Class 8 to 12 and MH-CET",
+  description:
+    "Mathematics courses for Classes 8th to 12th (CBSE and Maharashtra State Board) and MH-CET in Hinganghat.",
+  alternates: { canonical: "/courses" },
+};
 
 export default async function CoursesPage() {
-  const courses = await getCachedCourses().catch(() => []);
+  const courses = await getCourses().catch(() => []);
 
   return (
     <div className="pt-20 lg:pt-24">
@@ -84,24 +90,41 @@ export default async function CoursesPage() {
                       </ul>
                     )}
 
-                    {/* Meta */}
-                    <div className="flex flex-wrap gap-3 pt-2 border-t border-[var(--border)] mt-auto">
-                      {course.duration && (
-                        <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                          <Clock size={12} /> {course.duration}
-                        </div>
-                      )}
-                      {course.fees && (
-                        <div className="text-xs font-bold text-primary">{course.fees}</div>
-                      )}
-                    </div>
+                    {/* Duration */}
+                    {course.duration && (
+                      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] pt-2 border-t border-[var(--border)] mt-auto">
+                        <Clock size={12} /> {course.duration}
+                      </div>
+                    )}
 
-                    <Link
-                      href={course.ctaLink || "/contact"}
-                      className="btn-primary btn-sm justify-center mt-2"
-                    >
-                      {course.ctaText || "Enquire Now"} <ArrowRight size={14} />
-                    </Link>
+                    {/* Price */}
+                    {(course.fees || course.offerPrice) && (
+                      <div className="flex items-center justify-between gap-2 rounded-xl bg-primary/10 border border-primary/30 px-4 py-3">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                          Fees
+                        </span>
+                        <CoursePrice
+                          fees={course.fees}
+                          offerPrice={course.offerPrice}
+                          className="text-xl font-extrabold text-primary flex items-baseline gap-2 flex-wrap justify-end [&_del]:text-sm [&_del]:text-[var(--text-muted)] [&_del]:opacity-100 [&_del]:ml-0"
+                        />
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href={`/courses/${course.slug ?? course.id}`}
+                        className="btn-outline btn-sm justify-center"
+                      >
+                        View Details
+                      </Link>
+                      <Link
+                        href={course.ctaLink || "/contact"}
+                        className="btn-primary btn-sm justify-center"
+                      >
+                        {course.ctaText || "Enquire Now"} <ArrowRight size={14} />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -114,7 +137,7 @@ export default async function CoursesPage() {
       <section className="py-14 bg-[var(--bg-dark)] border-t border-[var(--border)]">
         <div className="container-custom text-center max-w-xl mx-auto flex flex-col items-center gap-4">
           <h2 className="font-display font-extrabold text-2xl text-white">Have Questions About Admission?</h2>
-          <p className="text-[var(--text-secondary)]">We're happy to guide you. Reach out anytime.</p>
+          <p className="text-[var(--text-secondary)]">We&apos;re happy to guide you. Reach out anytime.</p>
           <Link href="/contact" className="btn-primary">Contact Us <ArrowRight size={16} /></Link>
         </div>
       </section>

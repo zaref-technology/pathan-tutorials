@@ -15,6 +15,7 @@ export interface SiteSettings {
   email: string;
   address: string;
   googleMapsUrl: string;
+  googleMapsEmbedUrl?: string; // Google Maps "Embed a map" URL, shown on the contact page
   instagramUrl: string;
   facebookUrl: string;
   youtubeUrl: string;
@@ -78,6 +79,11 @@ export interface Course {
   description: string;
   duration: string;
   fees: string;
+  offerPrice?: string;   // optional discounted price; when set, `fees` is shown struck through
+  slug?: string;         // URL part for /courses/[slug]; falls back to the document id
+  syllabus?: string[];   // syllabus overview, one topic per entry
+  teachingApproach?: string;
+  practiceFacilities?: string[]; // practice and test facilities, one per entry
   image: string;
   features: string[];
   ctaText: string;
@@ -102,6 +108,9 @@ export interface StudentResult {
   studentPhoto: string;
   resultImage: string;
   achievementDescription: string;
+  category?: string;           // one of RESULT_CATEGORIES; older records fall back to `exam`
+  school?: string;             // school or college name
+  previousPercentage?: string; // only for improvement stories: score before joining
   isActive: boolean;
   showOnHome: boolean;   // show this result in the home page section
   createdAt?: string;
@@ -124,12 +133,28 @@ export interface Achievement {
 }
 
 // ── Gallery ────────────────────────────────────────────────────
+export const GALLERY_CATEGORIES = [
+  "Classroom Moments",
+  "Teaching Sessions",
+  "Weekly Tests",
+  "Student Activities",
+  "Academic Events",
+  "Celebrations",
+  "Achievement Ceremonies",
+] as const;
+
+// Categories used before the current list. Existing records keep working.
+export const LEGACY_GALLERY_CATEGORIES = [
+  "Classes",
+  "Events",
+  "Results",
+  "Achievements",
+  "Activities",
+] as const;
+
 export type GalleryCategory =
-  | "Classes"
-  | "Events"
-  | "Results"
-  | "Achievements"
-  | "Activities";
+  | (typeof GALLERY_CATEGORIES)[number]
+  | (typeof LEGACY_GALLERY_CATEGORIES)[number];
 
 export type GalleryMediaType = "image" | "youtube" | "instagram";
 
@@ -158,6 +183,8 @@ export interface Testimonial {
   class: string;
   rating: number;
   date: string;
+  role?: "Student" | "Parent"; // who gave the feedback
+  videoUrl?: string;            // optional YouTube link for a video testimonial
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -175,6 +202,13 @@ export interface Faculty {
   instagramUrl: string;
   linkedinUrl: string;
   youtubeUrl: string;
+  designation?: string;     // e.g. Director & Mathematics Educator
+  specialisation?: string;
+  classesTaught?: string;
+  philosophy?: string;      // teaching philosophy
+  message?: string;         // personal message for students and parents
+  videoUrl?: string;        // optional YouTube introduction video
+  isDirector?: boolean;     // the profile featured on the home and faculty pages
   order: number;
   isActive: boolean;
   createdAt?: string;
@@ -190,10 +224,22 @@ export interface Announcement {
   image: string;
   ctaText: string;
   ctaLink: string;
+  category?: string; // one of ANNOUNCEMENT_CATEGORIES
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
+
+export const ANNOUNCEMENT_CATEGORIES = [
+  "New Batch Starting",
+  "Admission Open",
+  "Weekly Test Schedule",
+  "Examination Update",
+  "Holiday Notice",
+  "Parent Meeting",
+  "Revision Batch",
+  "General",
+] as const;
 
 // ── Enquiry ────────────────────────────────────────────────────
 export type EnquiryStatus =
@@ -278,6 +324,34 @@ export interface WhyUsFeature {
   isActive: boolean;
 }
 
+// ── Result categories ──────────────────────────────────────────
+export const RESULT_CATEGORIES = [
+  "SSC Board",
+  "HSC Board",
+  "MHT-CET",
+  "School Topper",
+  "Subject-wise",
+  "Improvement Story",
+] as const;
+
+export const IMPROVEMENT_STORY_CATEGORY = "Improvement Story";
+
+// ── Editable content pages (title + description lists) ─────────
+export interface ContentItem {
+  id: string;
+  icon: string; // key of ICONS in lib/icons.ts
+  title: string;
+  description: string;
+}
+
+export interface ContentPage {
+  heading: string;
+  subheading: string;
+  tagline: string;
+  items: ContentItem[];
+  updatedAt?: string;
+}
+
 // ── Firestore Collection Names ─────────────────────────────────
 export const COLLECTIONS = {
   SETTINGS: "settings",
@@ -304,4 +378,15 @@ export const DOC_IDS = {
   SECTIONS: "sections",
   FLOATING_BUTTONS: "floatingButtons",
   WHY_US: "whyUs",
+  // Editable content pages, stored in the settings collection
+  ABOUT_PAGE: "aboutPage",
+  METHODOLOGY: "methodology",
+  LEARNING_SYSTEM: "learningSystem",
+  WHY_CHOOSE_US: "whyChooseUs",
 } as const;
+
+export type ContentPageId =
+  | typeof DOC_IDS.ABOUT_PAGE
+  | typeof DOC_IDS.METHODOLOGY
+  | typeof DOC_IDS.LEARNING_SYSTEM
+  | typeof DOC_IDS.WHY_CHOOSE_US;
