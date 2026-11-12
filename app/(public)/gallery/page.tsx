@@ -1,13 +1,11 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Images, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { FaInstagram, FaYoutube } from "react-icons/fa";
-import { GalleryImage, GalleryCategory } from "@/lib/types";
+import { GALLERY_CATEGORIES, GalleryImage, GalleryCategory, LEGACY_GALLERY_CATEGORIES } from "@/lib/types";
 
-const CATEGORIES: (GalleryCategory | "All")[] = [
-  "All", "Classes", "Events", "Results", "Achievements", "Activities",
-];
+const ALL_CATEGORIES: GalleryCategory[] = [...GALLERY_CATEGORIES, ...LEGACY_GALLERY_CATEGORIES];
 
 // Extract YouTube video ID from any URL format
 function ytId(url: string): string | null {
@@ -31,6 +29,12 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<GalleryCategory | "All">("All");
   const [lightbox, setLightbox] = useState<number | null>(null);
+
+  // Only categories that have items are shown, so visitors never land on an empty tab.
+  const categories = useMemo<(GalleryCategory | "All")[]>(
+    () => ["All", ...ALL_CATEGORIES.filter((c) => images.some((g) => g.category === c))],
+    [images]
+  );
 
   useEffect(() => {
     fetch("/api/gallery")
@@ -83,7 +87,7 @@ export default function GalleryPage() {
       {/* Category Filters */}
       <section className="py-5 bg-[var(--bg-card)] border-b border-[var(--border)]">
         <div className="container-custom flex flex-wrap gap-2 justify-center">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}

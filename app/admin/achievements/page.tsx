@@ -1,5 +1,4 @@
 "use client";
-import { revalidateCache } from "@/lib/bff/revalidate";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -36,15 +35,15 @@ export default function AchievementsAdminPage() {
     if (!modal) return;
     setSaving(true);
     try {
-      if (modal.mode === "add") { await addAchievement(modal.data as Omit<Achievement, "id">); toast.success("Added!"); revalidateCache("achievements");}
-      else { const { id, ...rest } = modal.data as Achievement; await updateAchievement(id, rest); revalidateCache("achievements"); toast.success("Updated!"); }
+      if (modal.mode === "add") { await addAchievement(modal.data as Omit<Achievement, "id">); toast.success("Added!");}
+      else { const { id, ...rest } = modal.data as Achievement; await updateAchievement(id, rest); toast.success("Updated!"); }
       setModal(null); load();
     } catch { toast.error("Save failed"); } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete?")) return;
-    try { await deleteAchievement(id); revalidateCache("achievements"); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
+    try { await deleteAchievement(id); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
   };
 
   if (loading || !user) return <div className="min-h-screen bg-dark flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>;
@@ -85,7 +84,7 @@ export default function AchievementsAdminPage() {
                       </td>
                       <td className="text-[var(--text-secondary)]">{item.date}</td>
                       <td>
-                        <button onClick={() => updateAchievement(item.id, { isActive: !item.isActive }).then(() => { revalidateCache("achievements"); load(); })}>
+                        <button onClick={() => updateAchievement(item.id, { isActive: !item.isActive }).then(() => { load(); })}>
                           {item.isActive ? <ToggleRight size={22} className="text-green-500" /> : <ToggleLeft size={22} className="text-[var(--text-muted)]" />}
                         </button>
                       </td>
@@ -113,7 +112,7 @@ export default function AchievementsAdminPage() {
                     <p className="text-xs text-[var(--text-muted)]">{item.category}{item.category && item.date ? " · " : ""}{item.date}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button onClick={() => updateAchievement(item.id, { isActive: !item.isActive }).then(() => { revalidateCache("achievements"); load(); })}>
+                    <button onClick={() => updateAchievement(item.id, { isActive: !item.isActive }).then(() => { load(); })}>
                       {item.isActive ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} className="text-[var(--text-muted)]" />}
                     </button>
                     <button onClick={() => setModal({ mode: "edit", data: { ...item } })} className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20"><Pencil size={13} /></button>

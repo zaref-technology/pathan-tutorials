@@ -14,6 +14,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { withCourseSlugs } from "@/lib/slug";
 import {
   COLLECTIONS,
   DOC_IDS,
@@ -32,6 +33,8 @@ import {
   NavigationSettings,
   SectionVisibility,
   FloatingButtonsSettings,
+  ContentPage,
+  ContentPageId,
 } from "@/lib/types";
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -111,6 +114,18 @@ export async function saveFloatingButtons(data: Partial<FloatingButtonsSettings>
   await setDoc(ref, withTimestamp(data), { merge: true });
 }
 
+// ── Editable Content Pages ─────────────────────────────────────
+export async function getContentPage(id: ContentPageId): Promise<ContentPage | null> {
+  const ref = doc(db, COLLECTIONS.SETTINGS, id);
+  const snap = await getDoc(ref);
+  return snap.exists() ? (snap.data() as ContentPage) : null;
+}
+
+export async function saveContentPage(id: ContentPageId, data: Omit<ContentPage, "updatedAt">) {
+  const ref = doc(db, COLLECTIONS.SETTINGS, id);
+  await setDoc(ref, withTimestamp(data));
+}
+
 // ── Statistics ─────────────────────────────────────────────────
 export async function getStatistics(): Promise<Statistic[]> {
   const ref = collection(db, COLLECTIONS.STATISTICS);
@@ -147,10 +162,17 @@ export async function deleteStatistic(id: string) {
 export async function getCourses(): Promise<Course[]> {
   const ref = collection(db, COLLECTIONS.COURSES);
   const snap = await getDocs(ref);
-  return snap.docs
+  const courses = snap.docs
     .map((d) => ({ id: d.id, ...d.data() } as Course))
     .filter((c) => c.isActive !== false)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  return withCourseSlugs(courses);
+}
+
+// Looks a course up by its slug, falling back to the document id for courses without one.
+export async function getCourseBySlug(slug: string): Promise<Course | null> {
+  const courses = await getCourses();
+  return courses.find((c) => c.slug === slug) ?? courses.find((c) => c.id === slug) ?? null;
 }
 
 export async function getAllCourses(): Promise<Course[]> {
@@ -336,7 +358,10 @@ export async function getAnnouncements(): Promise<Announcement[]> {
   const ref = collection(db, COLLECTIONS.ANNOUNCEMENTS);
   const q = query(ref, where("isActive", "==", true));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Announcement));
+  // Newest first. `date` is free text, so the last-edited time is used for ordering.
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as Announcement))
+    .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
 }
 
 export async function getAllAnnouncements(): Promise<Announcement[]> {

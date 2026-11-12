@@ -1,16 +1,21 @@
 // Server Component — data fetched server-side, only grid is client-side
 import Link from "next/link";
 import { Trophy, Star, ArrowRight } from "lucide-react";
-import { getCachedResults } from "@/lib/bff/cache";
+import { getResults } from "@/lib/firebase/firestore";
 import ResultsGrid from "@/components/public/ResultsGrid";
+import ImprovementStories from "@/components/public/ImprovementStories";
+import { IMPROVEMENT_STORY_CATEGORY } from "@/lib/types";
 
 export const metadata = {
-  title: "Student Results — Pathan Tutorials",
-  description: "See the outstanding results and achievements of Pathan Tutorials students across SSC, HSC, and MHT-CET.",
+  title: "Student Results and Achievements",
+  description: "SSC, HSC and MH-CET results, school toppers and student improvement stories from Pathan Tutorials.",
+  alternates: { canonical: "/results" },
 };
 
 export default async function ResultsPage() {
-  const results = await getCachedResults().catch(() => []);
+  const allResults = await getResults().catch(() => []);
+  const results = allResults.filter((r) => r.category !== IMPROVEMENT_STORY_CATEGORY);
+  const stories = allResults.filter((r) => r.category === IMPROVEMENT_STORY_CATEGORY);
 
   return (
     <div className="pt-20 lg:pt-24">
@@ -36,6 +41,8 @@ export default async function ResultsPage() {
 
       {/* ── Interactive Grid (Client Component) ─────────────── */}
       <ResultsGrid results={results} />
+
+      <ImprovementStories stories={stories} />
 
       {/* ── CTA ─────────────────────────────────────────────── */}
       <section className="py-16 bg-[var(--bg-card)] border-t border-[var(--border)]">

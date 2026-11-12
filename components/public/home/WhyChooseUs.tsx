@@ -1,49 +1,49 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Award, Users, CheckCircle2, BookOpen, Trophy, GraduationCap, Phone, ArrowRight, MapPin, Clock } from "lucide-react";
+import { Award, Phone, ArrowRight, MapPin, Clock } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa6";
-import { SiteSettings } from "@/lib/types";
+import { getIcon } from "@/lib/icons";
+import { ContentPage, SiteSettings } from "@/lib/types";
 
-const WHY_US = [
-  { icon: Award,          text: "10+ Years of Excellence" },
-  { icon: Users,          text: "500+ Students Taught" },
-  { icon: CheckCircle2,   text: "CBSE & State Board Expert" },
-  { icon: BookOpen,       text: "MHT-CET Specialist" },
-  { icon: Trophy,         text: "95%+ Success Rate" },
-  { icon: GraduationCap,  text: "Individual Attention" },
-];
+interface WhyChooseUsProps {
+  settings: SiteSettings | null;
+  content: ContentPage;
+}
 
-export default function WhyChooseUs({ settings }: { settings: SiteSettings | null }) {
+export default function WhyChooseUs({ settings, content }: WhyChooseUsProps) {
   const sirPhoto = settings?.sir?.trim() || "";
   const phone    = settings?.phone    || "";
   const whatsapp = settings?.whatsapp || settings?.phone || "";
   const waNumber = whatsapp.replace(/\D/g, "").replace(/^(?!91)/, "91");
 
   return (
-    <section className="section-padding bg-[var(--bg-card)] border-b border-[var(--border)]">
+    <section id="why-us" className="section-padding bg-[var(--bg-card)] border-b border-[var(--border)]">
       <div className="container-custom">
         <div className="grid lg:grid-cols-2 gap-10 xl:gap-16 items-center">
 
           {/* ── Left: text + points ──────────────────────── */}
           <div>
             <span className="section-badge mb-4 inline-flex"><Award size={13} /> Why Choose Us</span>
-            <h2 className="section-title mb-4">
-              Trusted by <span className="gradient-text">Hundreds</span> of Students
-            </h2>
-            <p className="text-[var(--text-secondary)] text-base leading-relaxed mb-8">
-              Pathan Tutorials has been the go-to Mathematics coaching in Hinganghat for over a decade.
-              Our personalised approach ensures every student reaches their potential.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {WHY_US.map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border)]">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                    <Icon size={15} className="text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-white">{text}</span>
-                </div>
-              ))}
-            </div>
+            <h2 className="section-title mb-4">{content.heading}</h2>
+            {content.subheading && (
+              <p className="text-[var(--text-secondary)] text-base leading-relaxed mb-8">{content.subheading}</p>
+            )}
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {content.items.map((item) => {
+                const Icon = getIcon(item.icon);
+                return (
+                  <li key={item.id} className="flex items-start gap-3 p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border)]">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                      <Icon size={15} className="text-primary" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-white">{item.title}</span>
+                      {item.description && <p className="text-xs text-[var(--text-secondary)] mt-0.5">{item.description}</p>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/about" className="btn-primary">Learn More <ArrowRight size={16} /></Link>
               <Link href="/contact" className="btn-outline">Enquire Now</Link>

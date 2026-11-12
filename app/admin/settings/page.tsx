@@ -1,5 +1,4 @@
 "use client";
-import { revalidateCache } from "@/lib/bff/revalidate";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -11,7 +10,7 @@ import { Save, Loader2, Info } from "lucide-react";
 import toast from "react-hot-toast";
 
 const EMPTY: SiteSettings = {
-  siteName: "Pathan Tutorials", tagline: "Excellence in Mathematics",
+  siteName: "Pathan Tutorials of Mathematics", tagline: "Maths Made Easy",
   description: "", logo: "/logo.jpeg", sir: "", favicon: "", phone: "", whatsapp: "",
   email: "", address: "", googleMapsUrl: "", instagramUrl: "", facebookUrl: "",
   youtubeUrl: "", telegramUrl: "", linkedinUrl: "", openingHours: "",
@@ -44,8 +43,6 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       await saveSiteSettings(form);
-      revalidateCache("settings");
-      revalidateCache("navigation");
       toast.success("Settings saved successfully!");
     } catch {
       toast.error("Failed to save settings.");
@@ -114,6 +111,11 @@ export default function SettingsPage() {
           <div>
             <label className="form-label">Google Maps URL</label>
             <input className="form-input" type="url" value={form.googleMapsUrl} onChange={(e) => set("googleMapsUrl", e.target.value)} placeholder="https://maps.google.com/..." />
+          </div>
+          <div>
+            <label className="form-label">Google Maps Embed URL</label>
+            <input className="form-input" type="url" value={form.googleMapsEmbedUrl ?? ""} onChange={(e) => set("googleMapsEmbedUrl", e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
+            <p className="text-xs text-[var(--text-muted)] mt-1">In Google Maps choose Share, then Embed a map, and copy only the src address. The map shows on the Contact page.</p>
           </div>
         </div>
 

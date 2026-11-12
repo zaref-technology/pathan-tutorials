@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { BookOpen, Trophy, GraduationCap, Star, Images, Bell } from "lucide-react";
+import { BookOpen, Trophy, GraduationCap, Star, Images, Bell, Lightbulb, Layers } from "lucide-react";
 
 const PAGES = [
   { icon: BookOpen,     title: "Courses",       desc: "Classes 8–12, CBSE, State Board & MHT-CET", href: "/courses",       color: "text-blue-400",   bg: "bg-blue-500/10 border-blue-500/20" },
   { icon: Trophy,       title: "Results",        desc: "Our students' outstanding achievements",     href: "/results",       color: "text-primary",    bg: "bg-primary/10 border-primary/20" },
+  { icon: Lightbulb,    title: "Methodology",    desc: "How we teach Mathematics",                  href: "/methodology",    color: "text-cyan-400",   bg: "bg-cyan-500/10 border-cyan-500/20" },
+  { icon: Layers,       title: "Learning System",desc: "Tests, practice and reports",               href: "/learning-system",color: "text-pink-400",   bg: "bg-pink-500/10 border-pink-500/20" },
   { icon: GraduationCap,title: "Faculty",        desc: "Meet our experienced educators",            href: "/faculty",       color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
   { icon: Star,         title: "Testimonials",   desc: "What students & parents say",               href: "/testimonials",  color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
   { icon: Images,       title: "Gallery",        desc: "Photos from classes & events",              href: "/gallery",       color: "text-green-400",  bg: "bg-green-500/10 border-green-500/20" },
@@ -22,7 +24,7 @@ export default function PagesGrid() {
           <div className="gold-divider mx-auto mt-4" />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {PAGES.map(({ icon: Icon, title, desc, href, color, bg }) => (
             <Link key={href} href={href}
               className="group flex flex-col items-center text-center gap-3 p-5 card-glass hover:border-primary/30 transition-all rounded-2xl">

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Star, Quote, User } from "lucide-react";
 import { Testimonial } from "@/lib/types";
+import { getYouTubeEmbedUrl } from "@/lib/youtube";
 
 export default function TestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -86,13 +87,29 @@ export default function TestimonialsPage() {
                     ))}
                   </div>
 
+                  {/* Video */}
+                  {getYouTubeEmbedUrl(t.videoUrl) && (
+                    <div className="rounded-xl overflow-hidden border border-[var(--border)] aspect-video">
+                      <iframe
+                        title={`Video testimonial by ${t.name}`}
+                        src={getYouTubeEmbedUrl(t.videoUrl) ?? undefined}
+                        className="w-full h-full border-0"
+                        loading="lazy"
+                        allow="accelerometer; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+
                   {/* Quote */}
-                  <div className="relative">
-                    <Quote size={24} className="text-primary/30 absolute -top-1 -left-1" />
-                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed pl-5 italic">
-                      "{t.testimonial}"
-                    </p>
-                  </div>
+                  {t.testimonial && (
+                    <div className="relative">
+                      <Quote size={24} className="text-primary/30 absolute -top-1 -left-1" />
+                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed pl-5 italic">
+                        &ldquo;{t.testimonial}&rdquo;
+                      </p>
+                    </div>
+                  )}
 
                   {/* Author */}
                   <div className="flex items-center gap-3 pt-3 border-t border-[var(--border)] mt-auto">
@@ -107,7 +124,7 @@ export default function TestimonialsPage() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-white">{t.name}</p>
-                      <p className="text-xs text-[var(--text-muted)]">{t.class} · {t.date}</p>
+                      <p className="text-xs text-[var(--text-muted)]">{[t.role, t.class, t.date].filter(Boolean).join(" · ")}</p>
                     </div>
                   </div>
                 </div>

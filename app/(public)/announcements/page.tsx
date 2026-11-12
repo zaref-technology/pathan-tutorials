@@ -1,11 +1,16 @@
-import { getCachedAnnouncements } from "@/lib/bff/cache";
+import { getAnnouncements } from "@/lib/firebase/firestore";
 import { Bell, Calendar, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export const metadata = { title: "Announcements — Pathan Tutorials" };
+export const metadata = {
+  title: "Announcements",
+  description:
+    "New batches, admissions, weekly test schedules, exam updates and notices from Pathan Tutorials, Hinganghat.",
+  alternates: { canonical: "/announcements" },
+};
 
 export default async function AnnouncementsPage() {
-  const announcements = await getCachedAnnouncements().catch(() => []);
+  const announcements = await getAnnouncements().catch(() => []);
 
   return (
     <div className="pt-20 lg:pt-24">
@@ -42,6 +47,7 @@ export default async function AnnouncementsPage() {
                     <Bell size={18} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
+                    {ann.category && <span className="badge badge-yellow mb-2 inline-flex">{ann.category}</span>}
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
                       <h2 className="font-display font-bold text-base text-white">{ann.title}</h2>
                       <div className="flex items-center gap-1 text-xs text-[var(--text-muted)] flex-shrink-0">

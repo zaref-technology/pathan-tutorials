@@ -1,19 +1,32 @@
 import { Phone, Mail, MapPin, ExternalLink, Clock } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa6";
-import { getCachedSiteSettings } from "@/lib/bff/cache";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
+import { getCourses } from "@/lib/firebase/firestore";
+import { getPublicSiteSettings } from "@/lib/content";
+import { isGoogleMapsEmbedUrl } from "@/lib/site-defaults";
 import EnquiryForm from "@/components/public/EnquiryForm";
 
-export const metadata = { title: "Contact Us — Pathan Tutorials" };
+export const metadata = {
+  title: "Contact and Admission Enquiry",
+  description:
+    "Call, WhatsApp or send an admission enquiry to Pathan Tutorials, opposite Sanjay Gandhi School, Hinganghat.",
+  alternates: { canonical: "/contact" },
+};
 
-export default async function ContactPage() {
-  const settings = await getCachedSiteSettings().catch(() => null);
+export default async function ContactPage({ searchParams }: { searchParams: Promise<{ course?: string }> }) {
+  const [settings, courses, query] = await Promise.all([
+    getPublicSiteSettings(),
+    getCourses().catch(() => []),
+    searchParams,
+  ]);
 
-  const phone   = settings?.phone || "";
-  const whatsapp = settings?.whatsapp || phone;
-  const email   = settings?.email || "";
-  const address = settings?.address || "";
-  const mapsUrl = settings?.googleMapsUrl || "";
-  const hours   = settings?.openingHours || "";
+  const phone   = settings.phone;
+  const whatsapp = settings.whatsapp || phone;
+  const email   = settings.email || "";
+  const address = settings.address;
+  const mapsUrl = settings.googleMapsUrl || "";
+  const embedUrl = settings.googleMapsEmbedUrl;
+  const instagram = settings.instagramUrl;
+  const hours   = settings.openingHours || "";
 
   return (
     <div className="pt-20 lg:pt-24">
@@ -27,7 +40,7 @@ export default async function ContactPage() {
             Get in <span className="gradient-text">Touch</span>
           </h1>
           <p className="section-subtitle mt-4">
-            Have questions? Ready to enroll? Reach out and we'll respond quickly.
+            Have questions? Ready to enroll? Reach out and we&apos;ll respond quickly.
           </p>
           <div className="gold-divider mx-auto mt-6" />
         </div>
@@ -97,6 +110,19 @@ export default async function ContactPage() {
                   </a>
                 )}
 
+                {instagram && (
+                  <a href={instagram} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border)] hover:border-pink-500/30 transition-colors group">
+                    <div className="w-11 h-11 rounded-full bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0">
+                      <FaInstagram size={20} className="text-pink-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Instagram</p>
+                      <p className="text-base font-bold text-white break-all">@{instagram.replace(/\/$/, "").split("/").pop()}</p>
+                    </div>
+                  </a>
+                )}
+
                 {hours && (
                   <div className="flex items-center gap-4 p-4 rounded-xl bg-primary/5 border border-primary/20">
                     <div className="w-11 h-11 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
@@ -120,10 +146,23 @@ export default async function ContactPage() {
 
             {/* ── Enquiry Form — Client Component ────────────── */}
             <div className="admin-card">
-              <EnquiryForm />
+              <EnquiryForm courseNames={courses.map((c) => c.name)} defaultCourse={query.course ?? ""} />
             </div>
 
           </div>
+
+          {isGoogleMapsEmbedUrl(embedUrl) && (
+            <div className="mt-10 rounded-2xl overflow-hidden border border-[var(--border)] aspect-[16/9] sm:aspect-[21/9]">
+              <iframe
+                title="Pathan Tutorials location on Google Maps"
+                src={embedUrl}
+                className="w-full h-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          )}
         </div>
       </section>
     </div>

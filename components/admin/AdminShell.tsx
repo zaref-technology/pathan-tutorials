@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import {
   LayoutDashboard, Settings, BookOpen, Trophy,
   Star, Images, Bell, MessageSquare, GraduationCap, Phone,
-  Globe, LogOut, Menu, X,
+  Globe, LogOut, Menu, X, Home, BarChart3, Info, Lightbulb, ClipboardList, ThumbsUp,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -27,6 +27,12 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Website Content",
     items: [
       { icon: Settings, label: "Site Settings", href: "/admin/settings" },
+      { icon: Home, label: "Homepage", href: "/admin/homepage" },
+      { icon: BarChart3, label: "Statistics", href: "/admin/statistics" },
+      { icon: ThumbsUp, label: "Why Choose Us", href: "/admin/why-choose-us" },
+      { icon: Info, label: "About Page", href: "/admin/about" },
+      { icon: Lightbulb, label: "Methodology", href: "/admin/methodology" },
+      { icon: ClipboardList, label: "Learning System", href: "/admin/learning-system" },
       { icon: BookOpen, label: "Courses", href: "/admin/courses" },
       { icon: Trophy, label: "Results", href: "/admin/results" },
       { icon: Star, label: "Achievements", href: "/admin/achievements" },

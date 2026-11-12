@@ -16,16 +16,11 @@ const outfit = Outfit({
   display: "swap",
 });
 
+// Public pages override this in app/(public)/layout.tsx using the admin SEO settings.
 export const metadata: Metadata = {
-  title: "Pathan Tutorials — Expert Mathematics Coaching in Hinganghat",
+  title: "Pathan Tutorials of Mathematics",
   description:
-    "Premier mathematics coaching for 8th–12th CBSE & Maharashtra State Board, and MHT-CET preparation in Hinganghat. Join 500+ successful students.",
-  keywords: "Pathan Tutorials, mathematics coaching, Hinganghat, CBSE, Maharashtra Board, MHT-CET, 10th maths, 12th maths",
-  openGraph: {
-    title: "Pathan Tutorials — Mathematics Coaching Hinganghat",
-    description: "Expert mathematics coaching for class 8 to 12 and MHT-CET. Located in Hinganghat, Maharashtra.",
-    type: "website",
-  },
+    "Mathematics coaching in Hinganghat for Classes 8th to 12th (CBSE and Maharashtra State Board) and MH-CET.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

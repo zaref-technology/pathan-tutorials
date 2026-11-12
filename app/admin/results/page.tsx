@@ -1,12 +1,11 @@
 "use client";
-import { revalidateCache } from "@/lib/bff/revalidate";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import AdminShell from "@/components/admin/AdminShell";
 import { getAllResults, addResult, updateResult, deleteResult } from "@/lib/firebase/firestore";
 import ImageUpload from "@/components/admin/ImageUpload";
-import { StudentResult } from "@/lib/types";
+import { IMPROVEMENT_STORY_CATEGORY, RESULT_CATEGORIES, StudentResult } from "@/lib/types";
 import { Plus, Pencil, Trash2, X, Save, Loader2, Trophy, ToggleLeft, ToggleRight, Pin } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -41,19 +40,19 @@ export default function ResultsAdminPage() {
     if (!modal) return;
     setSaving(true);
     try {
-      if (modal.mode === "add") { await addResult(modal.data as Omit<StudentResult, "id">); toast.success("Result added!"); revalidateCache("results");}
-      else { const { id, ...rest } = modal.data as StudentResult; await updateResult(id, rest); revalidateCache("results"); toast.success("Updated!"); }
+      if (modal.mode === "add") { await addResult(modal.data as Omit<StudentResult, "id">); toast.success("Result added!");}
+      else { const { id, ...rest } = modal.data as StudentResult; await updateResult(id, rest); toast.success("Updated!"); }
       setModal(null); load();
     } catch { toast.error("Save failed"); } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this result?")) return;
-    try { await deleteResult(id); revalidateCache("results"); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
+    try { await deleteResult(id); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
   };
 
   const handleToggle = async (item: StudentResult) => {
-    try { await updateResult(item.id, { isActive: !item.isActive }); revalidateCache("results"); load(); } catch { toast.error("Update failed"); }
+    try { await updateResult(item.id, { isActive: !item.isActive }); load(); } catch { toast.error("Update failed"); }
   };
 
   if (loading || !user) return <div className="min-h-screen bg-dark flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>;
@@ -92,7 +91,7 @@ export default function ResultsAdminPage() {
                     <tr key={item.id}>
                       <td className="font-600 text-white">{item.studentName}</td>
                       <td>{item.class}</td>
-                      <td>{item.exam}</td>
+                      <td>{item.category || item.exam}</td>
                       <td>{item.year}</td>
                       <td className="text-primary font-700">{item.percentage}</td>
                       <td>{item.rank}</td>
@@ -155,9 +154,20 @@ export default function ResultsAdminPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div><label className="form-label">Student Name</label><input className="form-input" value={d?.studentName || ""} onChange={(e) => set("studentName", e.target.value)} placeholder="Full name" /></div>
                 <div><label className="form-label">Class</label><input className="form-input" value={d?.class || ""} onChange={(e) => set("class", e.target.value)} placeholder="10th, 12th..." /></div>
-                <div><label className="form-label">Exam</label><input className="form-input" value={d?.exam || ""} onChange={(e) => set("exam", e.target.value)} placeholder="SSC, HSC, MHT-CET..." /></div>
+                <div>
+                  <label className="form-label">Category</label>
+                  <select className="form-select" value={d?.category || ""} onChange={(e) => set("category", e.target.value)}>
+                    <option value="">Select category</option>
+                    {RESULT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div><label className="form-label">School / College</label><input className="form-input" value={d?.school || ""} onChange={(e) => set("school", e.target.value)} /></div>
+                <div><label className="form-label">Exam (optional detail)</label><input className="form-input" value={d?.exam || ""} onChange={(e) => set("exam", e.target.value)} placeholder="SSC, HSC, MHT-CET..." /></div>
                 <div><label className="form-label">Year</label><input className="form-input" value={d?.year || ""} onChange={(e) => set("year", e.target.value)} /></div>
-                <div><label className="form-label">Percentage</label><input className="form-input" value={d?.percentage || ""} onChange={(e) => set("percentage", e.target.value)} placeholder="96%" /></div>
+                {d?.category === IMPROVEMENT_STORY_CATEGORY && (
+                  <div><label className="form-label">Percentage Before Joining</label><input className="form-input" value={d?.previousPercentage || ""} onChange={(e) => set("previousPercentage", e.target.value)} placeholder="45%" /></div>
+                )}
+                <div><label className="form-label">{d?.category === IMPROVEMENT_STORY_CATEGORY ? "Percentage Now" : "Percentage"}</label><input className="form-input" value={d?.percentage || ""} onChange={(e) => set("percentage", e.target.value)} placeholder="96%" /></div>
                 <div><label className="form-label">Marks</label><input className="form-input" value={d?.marks || ""} onChange={(e) => set("marks", e.target.value)} placeholder="480/500" /></div>
                 <div className="sm:col-span-2"><label className="form-label">Rank / Achievement</label><input className="form-input" value={d?.rank || ""} onChange={(e) => set("rank", e.target.value)} placeholder="School Topper, District Rank 1..." /></div>
               </div>

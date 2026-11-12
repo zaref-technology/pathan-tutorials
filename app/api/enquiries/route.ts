@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
     if (!board?.trim())
       return NextResponse.json({ error: "Please select a board." }, { status: 400 });
 
-    if (!message?.trim() || message.trim().length < 10)
-      return NextResponse.json({ error: "Message must be at least 10 characters." }, { status: 400 });
+    if (typeof message === "string" && message.trim().length > 1000)
+      return NextResponse.json({ error: "Message must be at most 1000 characters." }, { status: 400 });
 
     const enquiry: Omit<Enquiry, "id"> = {
       studentName: studentName.trim(),
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       class: body.class?.trim() || "",
       board: board?.trim() || "",
       course: course?.trim() || "",
-      message: message.trim(),
+      message: typeof message === "string" ? message.trim() : "",
       status: "New",
       createdAt: new Date().toISOString(),
     };

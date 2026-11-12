@@ -1,5 +1,4 @@
 "use client";
-import { revalidateCache } from "@/lib/bff/revalidate";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -7,12 +6,13 @@ import AdminShell from "@/components/admin/AdminShell";
 import { getAllCourses, addCourse, updateCourse, deleteCourse } from "@/lib/firebase/firestore";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { Course } from "@/lib/types";
+import { linesToList, slugify, withCourseSlugs } from "@/lib/slug";
 import { Plus, Pencil, Trash2, X, Save, Loader2, BookOpen, ToggleLeft, ToggleRight, Pin } from "lucide-react";
 import toast from "react-hot-toast";
 
 const EMPTY: Omit<Course, "id"> = {
   name: "", class: "", board: "", subject: "Mathematics", description: "",
-  duration: "", fees: "", image: "", features: [], ctaText: "Enquire Now",
+  duration: "", fees: "", offerPrice: "", image: "", features: [], ctaText: "Enquire Now",
   ctaLink: "/contact", isActive: true, showOnHome: false, order: 0,
 };
 
@@ -26,6 +26,8 @@ export default function CoursesAdminPage() {
   const [modal, setModal] = useState<ModalState>(null);
   const [saving, setSaving] = useState(false);
   const [featuresText, setFeaturesText] = useState("");
+  const [syllabusText, setSyllabusText] = useState("");
+  const [practiceText, setPracticeText] = useState("");
 
   useEffect(() => { if (!loading && !user) router.push("/admin"); }, [user, loading, router]);
 
@@ -38,10 +40,14 @@ export default function CoursesAdminPage() {
   const openAdd = () => {
     setModal({ mode: "add", data: { ...EMPTY, order: courses.length + 1 } });
     setFeaturesText("");
+    setSyllabusText("");
+    setPracticeText("");
   };
   const openEdit = (course: Course) => {
     setModal({ mode: "edit", data: { ...course } });
     setFeaturesText(course.features?.join("\n") || "");
+    setSyllabusText(course.syllabus?.join("\n") || "");
+    setPracticeText(course.practiceFacilities?.join("\n") || "");
   };
 
   const set = (field: keyof Course, val: unknown) =>
@@ -49,23 +55,35 @@ export default function CoursesAdminPage() {
 
   const handleSave = async () => {
     if (!modal) return;
-    const data = { ...modal.data, features: featuresText.split("\n").filter(Boolean) };
+    const slug = slugify(modal.data.slug || modal.data.name);
+    const currentId = "id" in modal.data ? modal.data.id : null;
+    if (!slug) { toast.error("Course name is required"); return; }
+    if (withCourseSlugs(courses).some((c) => c.id !== currentId && c.slug === slug)) {
+      toast.error("Another course already uses this page address. Change the URL slug.");
+      return;
+    }
+    const data = {
+      ...modal.data,
+      slug,
+      features: featuresText.split("\n").filter(Boolean),
+      syllabus: linesToList(syllabusText),
+      practiceFacilities: linesToList(practiceText),
+    };
     setSaving(true);
     try {
       if (modal.mode === "add") { await addCourse(data as Omit<Course, "id">); toast.success("Course added!"); }
       else { const { id, ...rest } = data as Course; await updateCourse(id, rest); toast.success("Course updated!"); }
-      revalidateCache("courses");
       setModal(null); load();
     } catch { toast.error("Save failed"); } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this course?")) return;
-    try { await deleteCourse(id); revalidateCache("courses"); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
+    try { await deleteCourse(id); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
   };
 
   const handleToggle = async (course: Course) => {
-    try { await updateCourse(course.id, { isActive: !course.isActive }); revalidateCache("courses"); load(); } catch { toast.error("Update failed"); }
+    try { await updateCourse(course.id, { isActive: !course.isActive }); load(); } catch { toast.error("Update failed"); }
   };
 
   if (loading || !user) return <div className="min-h-screen bg-dark flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>;
@@ -97,7 +115,7 @@ export default function CoursesAdminPage() {
             <div className="hidden md:block table-scroll">
               <table className="admin-table">
                 <thead>
-                  <tr><th>Name</th><th>Class</th><th>Board</th><th>Fees</th><th>Order</th><th>Active</th><th>Actions</th></tr>
+                  <tr><th>Name</th><th>Class</th><th>Board</th><th>Fees</th><th>Offer Price</th><th>Order</th><th>Active</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                   {courses.map((c) => (
@@ -105,7 +123,8 @@ export default function CoursesAdminPage() {
                       <td className="font-600 text-white">{c.name}</td>
                       <td>{c.class}</td>
                       <td>{c.board}</td>
-                      <td className="text-primary font-600">{c.fees}</td>
+                      <td className="text-[var(--text-secondary)]">{c.offerPrice ? <del>{c.fees}</del> : c.fees}</td>
+                      <td className="text-primary font-600">{c.offerPrice || "—"}</td>
                       <td>{c.order}</td>
                       <td>
                         <button onClick={() => handleToggle(c)}>
@@ -134,7 +153,7 @@ export default function CoursesAdminPage() {
                     </div>
                     <div className="min-w-0">
                       <p className="font-600 text-white text-sm truncate">{c.name}</p>
-                      <p className="text-xs text-[var(--text-muted)]">Class {c.class} · {c.board} · <span className="text-primary">{c.fees}</span></p>
+                      <p className="text-xs text-[var(--text-muted)]">Class {c.class} · {c.board} · <span className="text-primary">{c.offerPrice ? <><del className="text-[var(--text-muted)]">{c.fees}</del> {c.offerPrice}</> : c.fees}</span></p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -167,13 +186,18 @@ export default function CoursesAdminPage() {
                 <div><label className="form-label">Board</label><input className="form-input" value={d?.board || ""} onChange={(e) => set("board", e.target.value)} placeholder="CBSE, State Board..." /></div>
                 <div><label className="form-label">Subject</label><input className="form-input" value={d?.subject || ""} onChange={(e) => set("subject", e.target.value)} /></div>
                 <div><label className="form-label">Duration</label><input className="form-input" value={d?.duration || ""} onChange={(e) => set("duration", e.target.value)} placeholder="Academic Year" /></div>
-                <div><label className="form-label">Fees</label><input className="form-input" value={d?.fees || ""} onChange={(e) => set("fees", e.target.value)} placeholder="₹5000/month" /></div>
+                <div><label className="form-label">Fees (original price)</label><input className="form-input" value={d?.fees || ""} onChange={(e) => set("fees", e.target.value)} placeholder="₹8000" /></div>
+                <div><label className="form-label">Offer Price (optional)</label><input className="form-input" value={d?.offerPrice || ""} onChange={(e) => set("offerPrice", e.target.value)} placeholder="₹1000" /></div>
                 <div><label className="form-label">Display Order</label><input className="form-input" type="number" value={d?.order ?? 0} onChange={(e) => set("order", parseInt(e.target.value))} /></div>
                 <div><label className="form-label">CTA Text</label><input className="form-input" value={d?.ctaText || ""} onChange={(e) => set("ctaText", e.target.value)} /></div>
                 <div><label className="form-label">CTA Link</label><input className="form-input" value={d?.ctaLink || ""} onChange={(e) => set("ctaLink", e.target.value)} /></div>
               </div>
 
               <div><label className="form-label">Description</label><textarea className="form-textarea" rows={3} value={d?.description || ""} onChange={(e) => set("description", e.target.value)} /></div>
+              <div><label className="form-label">URL Slug</label><input className="form-input" value={d?.slug || ""} onChange={(e) => set("slug", e.target.value)} placeholder="Created from the course name if left empty" /></div>
+              <div><label className="form-label">Syllabus Overview (one topic per line)</label><textarea className="form-textarea" rows={5} value={syllabusText} onChange={(e) => setSyllabusText(e.target.value)} placeholder={"Algebra\nGeometry\nTrigonometry"} /></div>
+              <div><label className="form-label">Teaching Approach</label><textarea className="form-textarea" rows={4} value={d?.teachingApproach || ""} onChange={(e) => set("teachingApproach", e.target.value)} /></div>
+              <div><label className="form-label">Practice and Test Facilities (one per line)</label><textarea className="form-textarea" rows={4} value={practiceText} onChange={(e) => setPracticeText(e.target.value)} placeholder={"Weekly tests\nChapter-wise worksheets"} /></div>
               <div><label className="form-label">Features (one per line)</label><textarea className="form-textarea" rows={4} value={featuresText} onChange={(e) => setFeaturesText(e.target.value)} placeholder={"Weekly tests\nStudy material\nDoubt sessions"} /></div>
 
               <ImageUpload

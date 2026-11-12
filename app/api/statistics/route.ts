@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCachedStatistics } from "@/lib/bff/cache";
+import { getStatistics } from "@/lib/firebase/firestore";
 export const dynamic = "force-dynamic";
 export async function GET() {
   try {
-    const data = await getCachedStatistics();
+    const data = await getStatistics();
     return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
   } catch { return NextResponse.json([], { status: 500 }); }
 }

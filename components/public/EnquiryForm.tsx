@@ -26,16 +26,17 @@ const enquirySchema = z.object({
   class: z.string().min(1, "Please select a class"),
   board: z.string().min(1, "Please select a board"),
   course: z.string().optional(),
-  message: z.string().min(10, "Message must be at least 10 characters"),
+  message: z.string().max(1000, "Message must be at most 1000 characters").optional(),
 });
 
 type EnquiryFormData = z.infer<typeof enquirySchema>;
 
 const CLASSES = ["8th", "9th", "10th", "11th", "12th", "Dropper"];
 const BOARDS = ["CBSE", "Maharashtra State Board", "ICSE", "Other"];
-const COURSES_LIST = [
+// Used only when no courses have been published yet.
+const FALLBACK_COURSES = [
   "8th Mathematics", "9th Mathematics", "10th Mathematics",
-  "11th Mathematics", "12th Mathematics", "MHT-CET Mathematics", "Other",
+  "11th Mathematics", "12th Mathematics", "MH-CET Mathematics",
 ];
 
 // ── Field Error Component ──────────────────────────────────────────────────
@@ -50,8 +51,16 @@ function FieldError({ message }: { message?: string }) {
 }
 
 // ── Main Form ──────────────────────────────────────────────────────────────
-export default function EnquiryForm() {
+interface EnquiryFormProps {
+  courseNames?: string[];   // published course names, so the list always matches the admin panel
+  defaultCourse?: string;   // preselected, e.g. when arriving from a course page
+}
+
+export default function EnquiryForm({ courseNames = [], defaultCourse = "" }: EnquiryFormProps) {
   const [submitted, setSubmitted] = useState(false);
+  const courseOptions = [...(courseNames.length > 0 ? courseNames : FALLBACK_COURSES), "Other"];
+  // A preselected course that is not in the list would render an empty select, so it is ignored.
+  const initialCourse = courseOptions.includes(defaultCourse) ? defaultCourse : "";
 
   const {
     register,
@@ -64,7 +73,7 @@ export default function EnquiryForm() {
     mode: "onBlur",
     defaultValues: {
       studentName: "", parentName: "", phone: "", whatsapp: "",
-      email: "", class: "", board: "", course: "", message: "",
+      email: "", class: "", board: "", course: initialCourse, message: "",
     },
   });
 
@@ -157,7 +166,7 @@ export default function EnquiryForm() {
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="field-phone" className="form-label">
-            Phone <span className="text-red-500">*</span>
+            Contact Number <span className="text-red-500">*</span>
           </label>
           <input
             id="field-phone"
@@ -231,10 +240,10 @@ export default function EnquiryForm() {
           <FieldError message={errors.board?.message} />
         </div>
         <div>
-          <label htmlFor="field-course" className="form-label">Course</label>
+          <label htmlFor="field-course" className="form-label">Preferred Course</label>
           <select id="field-course" className="form-select" {...register("course")}>
             <option value="">Select</option>
-            {COURSES_LIST.map((c) => <option key={c} value={c}>{c}</option>)}
+            {courseOptions.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
       </div>
@@ -242,11 +251,11 @@ export default function EnquiryForm() {
       {/* Row 5: Message */}
       <div>
         <label htmlFor="field-message" className="form-label">
-          Message <span className="text-red-500">*</span>
+          Message <span className="text-[var(--text-muted)] text-xs font-400">(optional)</span>
         </label>
         <textarea
           id="field-message"
-          placeholder="Any specific query or message... (min 10 characters)"
+          placeholder="Any specific query or message..."
           rows={3}
           className={`form-textarea ${errors.message ? "border-red-500/60 focus:border-red-500" : ""}`}
           {...register("message")}

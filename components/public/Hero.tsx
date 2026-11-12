@@ -1,30 +1,32 @@
-"use client";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star, BookOpen, Users, ChevronDown, Award, Clock, Trophy } from "lucide-react";
+import { ArrowRight, BookOpen, Users, ChevronDown, Trophy } from "lucide-react";
+import { HeroSettings, SiteSettings } from "@/lib/types";
 
-const STATS = [
-  { value: "10+", label: "Years Experience" },
-  { value: "500+", label: "Students Taught" },
-  { value: "95%", label: "Top Scorers" },
-];
-
-const BADGES = [
-  { icon: BookOpen, text: "CBSE & State Board" },
-  { icon: Users, text: "MHT-CET Prep" },
-  { icon: Award, text: "8th — 12th Maths" },
-  { icon: Clock, text: "10+ Years" },
-];
-
-import { SiteSettings } from "@/lib/types";
+// Shown until the admin saves their own text in Admin > Homepage.
+const DEFAULT_HEADING = "Building Strong Concepts.|Developing Confident Learners.";
+const DEFAULT_SUBHEADING = "Mathematics Classes for 8th–12th & MH-CET";
+const DEFAULT_DESCRIPTION =
+  "Pathan Tutorials of Mathematics, Hinganghat. CBSE and Maharashtra State Board. Concept-based teaching with regular practice and tests.";
 
 interface HeroProps {
   settings?: SiteSettings | null;
+  hero?: HeroSettings | null;
 }
 
-export default function Hero({ settings }: HeroProps) {
+export default function Hero({ settings, hero }: HeroProps) {
   const logo = settings?.logo || "/logo.jpeg";
   const siteName = settings?.siteName || "Pathan Tutorials";
+  const visual = hero?.heroImage || logo;
+  const badge = hero?.badgeText || settings?.tagline || "Maths Made Easy";
+  // "Line one|Line two": the part after the bar is shown in the highlight colour.
+  const [headingMain, headingAccent] = (hero?.heading || DEFAULT_HEADING).split("|");
+  const subheading = hero?.subheading || DEFAULT_SUBHEADING;
+  const description = hero?.description || DEFAULT_DESCRIPTION;
+  const ctaText = hero?.ctaText || "Enroll Now";
+  const ctaLink = hero?.ctaLink || "/contact";
+  const secondCtaText = hero?.secondCtaText || "View Results";
+  const secondCtaLink = hero?.secondCtaLink || "/results";
   return (
     <section
       id="home"
@@ -68,7 +70,7 @@ export default function Hero({ settings }: HeroProps) {
             >
               <span className="section-badge flex items-center gap-1.5">
                 <Trophy size={14} className="text-primary flex-shrink-0" />
-                Hinganghat&apos;s #1 Maths Institute
+                {badge}
               </span>
             </div>
 
@@ -77,9 +79,13 @@ export default function Hero({ settings }: HeroProps) {
               className="font-display text-[clamp(2.2rem,8vw,4rem)] font-900 leading-[1.07] tracking-tight text-white animate-fadeInUp"
               style={{ animationDelay: "0.15s", animationFillMode: "both" }}
             >
-              Master Mathematics
-              <br />
-              <span className="gradient-text">With Confidence</span>
+              {headingMain}
+              {headingAccent && (
+                <>
+                  <br />
+                  <span className="gradient-text">{headingAccent}</span>
+                </>
+              )}
             </h1>
 
             {/* Sub */}
@@ -87,7 +93,7 @@ export default function Hero({ settings }: HeroProps) {
               className="text-base sm:text-lg font-semibold text-primary animate-fadeInUp"
               style={{ animationDelay: "0.25s", animationFillMode: "both" }}
             >
-              Expert Coaching for Classes 8–12 &amp; MHT-CET
+              {subheading}
             </p>
 
             {/* Description */}
@@ -95,9 +101,7 @@ export default function Hero({ settings }: HeroProps) {
               className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed max-w-md animate-fadeInUp"
               style={{ animationDelay: "0.35s", animationFillMode: "both" }}
             >
-              Pathan Tutorials — your trusted partner for Mathematics excellence
-              in Hinganghat. CBSE, Maharashtra Board &amp; MHT-CET preparation
-              with proven results.
+              {description}
             </p>
 
             {/* CTA Buttons */}
@@ -105,28 +109,13 @@ export default function Hero({ settings }: HeroProps) {
               className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fadeInUp"
               style={{ animationDelay: "0.45s", animationFillMode: "both" }}
             >
-              <Link href="/contact" className="btn-primary justify-center">
-                Enroll Now
+              <Link href={ctaLink} className="btn-primary justify-center">
+                {ctaText}
                 <ArrowRight size={18} />
               </Link>
-              <Link href="/results" className="btn-outline justify-center">
-                View Results
+              <Link href={secondCtaLink} className="btn-outline justify-center">
+                {secondCtaText}
               </Link>
-            </div>
-
-            {/* Trust strip */}
-            <div
-              className="flex items-center justify-center lg:justify-start gap-4 animate-fadeInUp"
-              style={{ animationDelay: "0.55s", animationFillMode: "both" }}
-            >
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={13} className="star-filled" fill="currentColor" />
-                ))}
-              </div>
-              <span className="text-xs sm:text-sm text-[var(--text-secondary)]">
-                Trusted by 500+ students &amp; parents
-              </span>
             </div>
           </div>
 
@@ -143,7 +132,7 @@ export default function Hero({ settings }: HeroProps) {
               {/* Logo circle */}
               <div className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full overflow-hidden border-4 border-primary/30 ring-8 ring-primary/8 shadow-[0_0_60px_rgba(212,175,55,0.2)] animate-float">
                 <Image
-                  src={logo}
+                  src={visual}
                   alt={siteName}
                   fill
                   sizes="(max-width: 640px) 224px, (max-width: 1024px) 256px, 288px"
@@ -175,25 +164,12 @@ export default function Hero({ settings }: HeroProps) {
                   <Users size={15} className="text-primary flex-shrink-0" />
                   <div>
                     <p className="text-[11px] font-bold text-white leading-tight">MHT-CET</p>
-                    <p className="text-[9px] text-[var(--text-secondary)]">Expert Prep</p>
+                    <p className="text-[9px] text-[var(--text-secondary)]">Exam Preparation</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ── Mini Stats Bar ───────────────────────────────────── */}
-        <div
-          className="mt-14 lg:mt-20 grid grid-cols-3 gap-4 sm:gap-8 max-w-lg mx-auto lg:mx-0 animate-fadeInUp"
-          style={{ animationDelay: "0.65s", animationFillMode: "both" }}
-        >
-          {STATS.map(({ value, label }) => (
-            <div key={label} className="text-center lg:text-left">
-              <p className="font-display font-900 text-2xl sm:text-3xl gradient-text leading-none">{value}</p>
-              <p className="text-[10px] sm:text-xs text-[var(--text-secondary)] mt-1 leading-tight">{label}</p>
-            </div>
-          ))}
         </div>
 
         {/* ── Scroll cue ───────────────────────────────────────── */}

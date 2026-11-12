@@ -1,18 +1,17 @@
 "use client";
-import { revalidateCache } from "@/lib/bff/revalidate";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import AdminShell from "@/components/admin/AdminShell";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { getAllAnnouncements, addAnnouncement, updateAnnouncement, deleteAnnouncement } from "@/lib/firebase/firestore";
-import { Announcement } from "@/lib/types";
+import { ANNOUNCEMENT_CATEGORIES, Announcement } from "@/lib/types";
 import { Plus, Pencil, Trash2, X, Save, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 const EMPTY: Omit<Announcement, "id"> = {
   title: "", description: "", date: new Date().toLocaleDateString("en-IN"),
-  image: "", ctaText: "", ctaLink: "", isActive: true,
+  image: "", ctaText: "", ctaLink: "", category: "General", isActive: true,
 };
 
 export default function AnnouncementsAdminPage() {
@@ -34,15 +33,15 @@ export default function AnnouncementsAdminPage() {
     if (!modal) return;
     setSaving(true);
     try {
-      if (modal.mode === "add") { await addAnnouncement(modal.data as Omit<Announcement, "id">); toast.success("Added!"); revalidateCache("announcements"); }
-      else { const { id, ...rest } = modal.data as Announcement; await updateAnnouncement(id, rest); revalidateCache("announcements"); toast.success("Updated!"); }
+      if (modal.mode === "add") { await addAnnouncement(modal.data as Omit<Announcement, "id">); toast.success("Added!"); }
+      else { const { id, ...rest } = modal.data as Announcement; await updateAnnouncement(id, rest); toast.success("Updated!"); }
       setModal(null); load();
     } catch { toast.error("Save failed"); } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete?")) return;
-    try { await deleteAnnouncement(id); revalidateCache("announcements"); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
+    try { await deleteAnnouncement(id); toast.success("Deleted"); load(); } catch { toast.error("Delete failed"); }
   };
 
   if (loading || !user) return <div className="min-h-screen bg-dark flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>;
@@ -60,11 +59,12 @@ export default function AnnouncementsAdminPage() {
           : items.length === 0 ? <div className="text-center py-12 text-[var(--text-muted)]">No announcements yet</div>
           : (
             <div className="table-scroll"><table className="admin-table">
-              <thead><tr><th>Title</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Title</th><th>Category</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
                 {items.map((item) => (
                   <tr key={item.id}>
                     <td className="font-600 text-white">{item.title}</td>
+                    <td className="text-[var(--text-secondary)]">{item.category || "General"}</td>
                     <td className="text-[var(--text-secondary)]">{item.date}</td>
                     <td>
                       <button onClick={() => { updateAnnouncement(item.id, { isActive: !item.isActive }).then(load); }}>
@@ -93,6 +93,12 @@ export default function AnnouncementsAdminPage() {
             </div>
             <div className="p-5 space-y-4">
               <div><label className="form-label">Title</label><input className="form-input" value={(modal.data as Announcement).title || ""} onChange={(e) => set("title", e.target.value)} /></div>
+              <div>
+                <label className="form-label">Category</label>
+                <select className="form-select" value={(modal.data as Announcement).category || "General"} onChange={(e) => set("category", e.target.value)}>
+                  {ANNOUNCEMENT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
               <div><label className="form-label">Description</label><textarea className="form-textarea" rows={4} value={(modal.data as Announcement).description || ""} onChange={(e) => set("description", e.target.value)} /></div>
               <div><label className="form-label">Date</label><input className="form-input" value={(modal.data as Announcement).date || ""} onChange={(e) => set("date", e.target.value)} /></div>
               <ImageUpload label="Image (optional)" folder="announcements" value={(modal.data as Announcement).image || ""} onChange={(url) => set("image", url)} aspectRatio="wide" />
