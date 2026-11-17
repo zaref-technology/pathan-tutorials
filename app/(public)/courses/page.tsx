@@ -1,15 +1,16 @@
 import { getCourses } from "@/lib/firebase/firestore";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import CoursePrice from "@/components/public/CoursePrice";
 import Image from "next/image";
 import { BookOpen, Clock, CheckCircle2, ArrowRight } from "lucide-react";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Maths Courses for Class 8 to 12 and MH-CET",
   description:
     "Mathematics courses for Classes 8th to 12th (CBSE and Maharashtra State Board) and MH-CET in Hinganghat.",
-  alternates: { canonical: "/courses" },
-};
+  path: "/courses",
+});
 
 export default async function CoursesPage() {
   const courses = await getCourses().catch(() => []);

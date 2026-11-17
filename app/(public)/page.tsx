@@ -14,6 +14,7 @@ import AchievementsTeaser from "@/components/public/home/AchievementsTeaser";
 import DirectorIntro from "@/components/public/home/DirectorIntro";
 import TestimonialsTeaser from "@/components/public/home/TestimonialsTeaser";
 import AnnouncementsTeaser from "@/components/public/home/AnnouncementsTeaser";
+import FaqSection from "@/components/public/home/FaqSection";
 import PagesGrid from "@/components/public/home/PagesGrid";
 import HomeCTA from "@/components/public/home/HomeCTA";
 
@@ -29,7 +30,7 @@ function valueOr<T>(res: PromiseSettledResult<T>, fallback: T): T {
 export default async function HomePage() {
   const [
     settingsRes, heroRes, statsRes, coursesRes, testimonialsRes, achievementsRes,
-    resultsRes, facultyRes, announcementsRes, whyRes, methodologyRes,
+    resultsRes, facultyRes, announcementsRes, whyRes, methodologyRes, faqRes,
   ] = await Promise.allSettled([
     getPublicSiteSettings(),
     getHeroSettings(),
@@ -42,6 +43,7 @@ export default async function HomePage() {
     getAnnouncements(),
     getContentPageOrDefault(DOC_IDS.WHY_CHOOSE_US),
     getContentPageOrDefault(DOC_IDS.METHODOLOGY),
+    getContentPageOrDefault(DOC_IDS.FAQ),
   ]);
 
   const settings = valueOr(settingsRes, null);
@@ -61,6 +63,7 @@ export default async function HomePage() {
       <DirectorIntro director={faculty.find((f) => f.isDirector) ?? null} />
       <TestimonialsTeaser testimonials={valueOr(testimonialsRes, [])} />
       <AnnouncementsTeaser announcements={valueOr(announcementsRes, []).slice(0, HOME_ANNOUNCEMENT_COUNT)} />
+      {faqRes.status === "fulfilled" && <FaqSection content={faqRes.value} />}
       <PagesGrid />
       <HomeCTA settings={settings} />
     </>

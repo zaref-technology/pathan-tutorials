@@ -1,15 +1,16 @@
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
 import { ArrowRight, Lightbulb } from "lucide-react";
 import ContentCards from "@/components/public/ContentCards";
 import { getContentPageOrDefault } from "@/lib/content";
 import { DOC_IDS } from "@/lib/types";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Our Teaching Methodology",
   description:
     "How Pathan Tutorials teaches Mathematics in Hinganghat: concept clarity, step-by-step learning, regular practice, weekly tests, doubt solving and personal attention.",
-  alternates: { canonical: "/methodology" },
-};
+  path: "/methodology",
+});
 
 export default async function MethodologyPage() {
   const page = await getContentPageOrDefault(DOC_IDS.METHODOLOGY);

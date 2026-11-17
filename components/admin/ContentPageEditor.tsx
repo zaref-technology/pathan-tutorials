@@ -15,9 +15,11 @@ interface Props {
   title: string;
   helpText: string;
   showTagline?: boolean;
+  titleLabel?: string;
+  descriptionLabel?: string;
 }
 
-export default function ContentPageEditor({ docId, title, helpText, showTagline = false }: Props) {
+export default function ContentPageEditor({ docId, title, helpText, showTagline = false, titleLabel = "Title", descriptionLabel = "Description" }: Props) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [page, setPage] = useState<ContentPage>(CONTENT_PAGE_DEFAULTS[docId]);
@@ -104,7 +106,7 @@ export default function ContentPageEditor({ docId, title, helpText, showTagline 
           {page.items.map((it, i) => (
             <div key={it.id} className="admin-card space-y-3">
               <div className="grid sm:grid-cols-[1fr_9rem] gap-3">
-                <div><label className="form-label" htmlFor={`t-${it.id}`}>Title</label><input id={`t-${it.id}`} className="form-input" value={it.title} onChange={(e) => updateItem(it.id, { title: e.target.value })} /></div>
+                <div><label className="form-label" htmlFor={`t-${it.id}`}>{titleLabel}</label><input id={`t-${it.id}`} className="form-input" value={it.title} onChange={(e) => updateItem(it.id, { title: e.target.value })} /></div>
                 <div>
                   <label className="form-label" htmlFor={`i-${it.id}`}>Icon</label>
                   <select id={`i-${it.id}`} className="form-select" value={it.icon} onChange={(e) => updateItem(it.id, { icon: e.target.value })}>
@@ -112,7 +114,7 @@ export default function ContentPageEditor({ docId, title, helpText, showTagline 
                   </select>
                 </div>
               </div>
-              <div><label className="form-label" htmlFor={`d-${it.id}`}>Description</label><textarea id={`d-${it.id}`} className="form-textarea" rows={3} value={it.description} onChange={(e) => updateItem(it.id, { description: e.target.value })} /></div>
+              <div><label className="form-label" htmlFor={`d-${it.id}`}>{descriptionLabel}</label><textarea id={`d-${it.id}`} className="form-textarea" rows={3} value={it.description} onChange={(e) => updateItem(it.id, { description: e.target.value })} /></div>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => moveItem(i, -1)} disabled={i === 0} aria-label="Move up" className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 cursor-pointer"><ArrowUp size={14} /></button>
                 <button onClick={() => moveItem(i, 1)} disabled={i === page.items.length - 1} aria-label="Move down" className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 cursor-pointer"><ArrowDown size={14} /></button>

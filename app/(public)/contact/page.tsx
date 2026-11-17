@@ -1,16 +1,17 @@
 import { Phone, Mail, MapPin, ExternalLink, Clock } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import { getCourses } from "@/lib/firebase/firestore";
 import { getPublicSiteSettings } from "@/lib/content";
 import { isGoogleMapsEmbedUrl } from "@/lib/site-defaults";
 import EnquiryForm from "@/components/public/EnquiryForm";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Contact and Admission Enquiry",
   description:
     "Call, WhatsApp or send an admission enquiry to Pathan Tutorials, opposite Sanjay Gandhi School, Hinganghat.",
-  alternates: { canonical: "/contact" },
-};
+  path: "/contact",
+});
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ course?: string }> }) {
   const [settings, courses, query] = await Promise.all([
