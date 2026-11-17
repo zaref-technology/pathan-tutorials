@@ -1,15 +1,16 @@
 import { getFaculty } from "@/lib/firebase/firestore";
+import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import { GraduationCap, AtSign, Link2, PlayCircle } from "lucide-react";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import type { Faculty } from "@/lib/types";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Meet Our Director and Faculty",
   description:
     "Meet Mr. Manjur Pathan and the Mathematics educators at Pathan Tutorials, Hinganghat.",
-  alternates: { canonical: "/faculty" },
-};
+  path: "/faculty",
+});
 
 function DirectorProfile({ director }: { director: Faculty }) {
   const embedUrl = getYouTubeEmbedUrl(director.videoUrl);

@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { getNavigationSettings, getSEOSettings } from "@/lib/firebase/firestore";
 import { getPublicSiteSettings } from "@/lib/content";
 import { DEFAULT_KEYWORDS, SITE_URL } from "@/lib/site-defaults";
+import { OG_IMAGE } from "@/lib/seo";
 import Navbar from "@/components/public/Navbar";
 import Footer from "@/components/public/Footer";
 import FloatingButtons from "@/components/public/FloatingButtons";
 import Analytics from "@/components/public/Analytics";
+import JsonLd from "@/components/public/JsonLd";
 
 // Public pages must always show the latest admin edits, so the whole (public)
 // tree is rendered on every request instead of being frozen at build time.
@@ -37,11 +39,12 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "en_IN",
       siteName,
+      url: "/",
       title: seo?.ogTitle?.trim() || title,
       description: seo?.ogDescription?.trim() || description,
-      ...(ogImage ? { images: [ogImage] } : {}),
+      images: ogImage ? [ogImage] : [OG_IMAGE],
     },
-    twitter: { card: ogImage ? "summary_large_image" : "summary" },
+    twitter: { card: "summary_large_image" },
     ...(googleVerification ? { verification: { google: googleVerification } } : {}),
   };
 }
@@ -56,29 +59,39 @@ export default async function PublicLayout({ children }: { children: React.React
   const sameAs = [settings.instagramUrl, settings.facebookUrl, settings.youtubeUrl].filter(Boolean);
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    name: settings.siteName,
-    url: SITE_URL,
-    description: settings.description || DEFAULT_DESCRIPTION,
-    telephone: settings.phone,
-    ...(settings.logo ? { logo: settings.logo } : {}),
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: settings.address,
-      addressLocality: "Hinganghat",
-      addressRegion: "Maharashtra",
-      addressCountry: "IN",
-    },
-    ...(sameAs.length ? { sameAs } : {}),
+    "@graph": [
+      {
+        "@type": "EducationalOrganization",
+        "@id": `${SITE_URL}/#organization`,
+        name: settings.siteName,
+        url: SITE_URL,
+        description: settings.description || DEFAULT_DESCRIPTION,
+        telephone: settings.phone,
+        areaServed: "Hinganghat, Maharashtra, India",
+        ...(settings.logo ? { logo: settings.logo, image: settings.logo } : {}),
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: settings.address,
+          addressLocality: "Hinganghat",
+          addressRegion: "Maharashtra",
+          addressCountry: "IN",
+        },
+        ...(sameAs.length ? { sameAs } : {}),
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: settings.siteName,
+        inLanguage: "en-IN",
+        publisher: { "@id": `${SITE_URL}/#organization` },
+      },
+    ],
   };
 
   return (
     <>
-      {/* "<" is escaped so admin-entered text can never close the script tag. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
-      />
+      <JsonLd data={structuredData} />
       <Navbar nav={navRes} settings={settings} />
       <main className="min-h-screen">{children}</main>
       <Footer settings={settings} />

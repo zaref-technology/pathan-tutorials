@@ -1,13 +1,15 @@
 import { getAchievements } from "@/lib/firebase/firestore";
+import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
 import { Trophy, Calendar, ArrowRight, ExternalLink } from "lucide-react";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Achievements",
-  description: "Milestones and accomplishments of Pathan Tutorials students.",
-  alternates: { canonical: "/achievements" },
-};
+  description:
+    "Milestones and accomplishments of Pathan Tutorials students.",
+  path: "/achievements",
+});
 
 const CATEGORY_COLORS: Record<string, string> = {
   Academic:   "bg-blue-500/10 text-blue-400 border-blue-500/20",

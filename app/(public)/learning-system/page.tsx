@@ -1,15 +1,16 @@
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
 import { ArrowRight, Layers } from "lucide-react";
 import ContentCards from "@/components/public/ContentCards";
 import { getContentPageOrDefault } from "@/lib/content";
 import { DOC_IDS } from "@/lib/types";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Student Learning System",
   description:
     "Weekly tests, monthly performance reports, chapter-wise practice papers, doubt solving and revision tests at Pathan Tutorials, Hinganghat.",
-  alternates: { canonical: "/learning-system" },
-};
+  path: "/learning-system",
+});
 
 export default async function LearningSystemPage() {
   const page = await getContentPageOrDefault(DOC_IDS.LEARNING_SYSTEM);

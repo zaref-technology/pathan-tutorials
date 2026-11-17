@@ -1,16 +1,18 @@
 // Server Component — data fetched server-side, only grid is client-side
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
 import { Trophy, Star, ArrowRight } from "lucide-react";
 import { getResults } from "@/lib/firebase/firestore";
 import ResultsGrid from "@/components/public/ResultsGrid";
 import ImprovementStories from "@/components/public/ImprovementStories";
 import { IMPROVEMENT_STORY_CATEGORY } from "@/lib/types";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Student Results and Achievements",
-  description: "SSC, HSC and MH-CET results, school toppers and student improvement stories from Pathan Tutorials.",
-  alternates: { canonical: "/results" },
-};
+  description:
+    "SSC, HSC and MH-CET results, school toppers and student improvement stories from Pathan Tutorials.",
+  path: "/results",
+});
 
 export default async function ResultsPage() {
   const allResults = await getResults().catch(() => []);

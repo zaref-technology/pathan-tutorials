@@ -1,13 +1,14 @@
 import { getAnnouncements } from "@/lib/firebase/firestore";
+import { pageMetadata } from "@/lib/seo";
 import { Bell, Calendar, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Announcements",
   description:
     "New batches, admissions, weekly test schedules, exam updates and notices from Pathan Tutorials, Hinganghat.",
-  alternates: { canonical: "/announcements" },
-};
+  path: "/announcements",
+});
 
 export default async function AnnouncementsPage() {
   const announcements = await getAnnouncements().catch(() => []);

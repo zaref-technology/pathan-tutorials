@@ -49,6 +49,13 @@ export const CONTENT_PAGE_DEFAULTS: Record<ContentPageId, ContentPage> = {
       item("w6", "help", "Doubt Solving Sessions", ""),
     ],
   },
+  // No starting questions: answers must come from the institute so nothing unverified is published.
+  [DOC_IDS.FAQ]: {
+    heading: "Frequently Asked Questions",
+    subheading: "",
+    tagline: "",
+    items: [],
+  },
   [DOC_IDS.ABOUT_PAGE]: {
     heading: "Our Journey",
     subheading: "",

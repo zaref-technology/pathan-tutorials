@@ -1,4 +1,5 @@
 import { getFaculty } from "@/lib/firebase/firestore";
+import { pageMetadata } from "@/lib/seo";
 import { getContentPageOrDefault, getPublicSiteSettings } from "@/lib/content";
 import { DOC_IDS } from "@/lib/types";
 import ContentCards from "@/components/public/ContentCards";
@@ -7,12 +8,12 @@ import Link from "next/link";
 import { MapPin, Phone, Mail, Clock, ArrowRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa6";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "About Us: Our Journey",
   description:
     "The journey, vision, mission and teaching philosophy of Pathan Tutorials of Mathematics, Hinganghat.",
-  alternates: { canonical: "/about" },
-};
+  path: "/about",
+});
 
 export default async function AboutPage() {
   const [settings, about, faculty] = await Promise.all([

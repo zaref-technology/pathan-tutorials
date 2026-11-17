@@ -5,6 +5,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, ClipboardList, Clock, Layers, Lightbulb } from "lucide-react";
 import { getCourseBySlug } from "@/lib/firebase/firestore";
 import CoursePrice from "@/components/public/CoursePrice";
+import { pageMetadata } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site-defaults";
+import JsonLd from "@/components/public/JsonLd";
 
 interface CoursePageProps {
   params: Promise<{ slug: string }>;
@@ -16,11 +19,13 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
   if (!course) return { title: "Course not found", robots: { index: false } };
 
   return {
-    title: `${course.name}${course.board ? ` (${course.board})` : ""} in Hinganghat`,
-    description:
-      course.description?.slice(0, 160) ||
-      `${course.name} classes at Pathan Tutorials, Hinganghat.`,
-    alternates: { canonical: `/courses/${course.slug ?? course.id}` },
+    ...pageMetadata({
+      title: `${course.name}${course.board ? ` (${course.board})` : ""} in Hinganghat`,
+      description:
+        course.description?.slice(0, 160) ||
+        `${course.name} classes at Pathan Tutorials, Hinganghat.`,
+      path: `/courses/${course.slug ?? course.id}`,
+    }),
   };
 }
 
@@ -56,8 +61,32 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
   const enquiryHref = `/contact?course=${encodeURIComponent(course.name)}`;
   const hasPrice = Boolean(course.fees || course.offerPrice);
 
+  const courseUrl = `${SITE_URL}/courses/${course.slug ?? course.id}`;
+  // Only facts that are visible on this page are included.
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Course",
+        name: course.name,
+        ...(course.description ? { description: course.description } : {}),
+        url: courseUrl,
+        provider: { "@type": "EducationalOrganization", name: "Pathan Tutorials of Mathematics", url: SITE_URL },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Courses", item: `${SITE_URL}/courses` },
+          { "@type": "ListItem", position: 3, name: course.name, item: courseUrl },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="pt-20 lg:pt-24">
+      <JsonLd data={structuredData} />
       <section className="py-10 sm:py-14 bg-[var(--bg-dark)] border-b border-[var(--border)]">
         <div className="container-custom max-w-5xl">
           <Link href="/courses" className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-primary transition-colors mb-5">

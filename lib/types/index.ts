@@ -383,10 +383,12 @@ export const DOC_IDS = {
   METHODOLOGY: "methodology",
   LEARNING_SYSTEM: "learningSystem",
   WHY_CHOOSE_US: "whyChooseUs",
+  FAQ: "faq",
 } as const;
 
 export type ContentPageId =
   | typeof DOC_IDS.ABOUT_PAGE
   | typeof DOC_IDS.METHODOLOGY
   | typeof DOC_IDS.LEARNING_SYSTEM
-  | typeof DOC_IDS.WHY_CHOOSE_US;
+  | typeof DOC_IDS.WHY_CHOOSE_US
+  | typeof DOC_IDS.FAQ;
